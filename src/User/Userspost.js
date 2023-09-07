@@ -17,12 +17,15 @@ function Home() {
     var [userslist, setUserslist] = useState([]);
     const [newdata, setNewdata] = useState([]);
     const [show, setShow] = useState(false);
+    const [showedit, setShowedit] = useState(false);
     const [user, setUser] = useState('');
     const [title, setTitle] = useState('');
     const [type, setType] = useState('');
     const [content, setContent] = useState('');
-    const handleClose = () => {setShow(false)};
+    const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+    const handleEditClose = () => setShowedit(false);
+    const handleEditShow = () => setShowedit(true);
     useEffect(() => {
         document.title = "MERN Technology || Users - Post";
         if (LOGIN_USER === false) {
@@ -101,8 +104,74 @@ function Home() {
         }
     }
     async function saveData(){
-        console.log({'user':user,'title':title,'type':type,'content':content});
+        // console.log({'user':user,'title':title,'type':type,'content':content});
+        const myform = new FormData();
+        myform.append('user', user);
+        myform.append('title', title);
+        myform.append('type', type);
+        myform.append('content', content);
+        let result = await fetch(`${API_URL}/users/save-post`, {
+            method: 'POST',
+            body: myform,
+            headers: {
+                'authorization': LOGIN_USER.token,
+            }
+        });
+        result = await result.json();
+        console.clear(); 
+        // console.log(result);
+        if (result.status === 200) {
+            alert(result.message);
+            setShow(false);
+            getdata(1, 10);
+        } else {
+            alert(result.message);
+            console.error(result); 
+        }
+    } 
+
+    async function EditRow(item) {
+        let result = await fetch(`${API_URL}/users/post-byid/${item._id}`, {
+            method: 'GET',
+            headers: {
+                'authorization': LOGIN_USER.token,
+            }
+        });
+        result = await result.json();
+        console.clear(); 
+        if (result.status === 200) {
+            setShowedit(true);
+            console.log(result);
+        } else {
+            alert(result.message);
+            console.error(result); 
+        }
     }
+
+    async function DeleteRow(item) {
+        if(window.confirm('Are you sure to delete this record ?')){
+            let result = await fetch(`${API_URL}/users/delete-post-byid/${item._id}`, {
+                method: 'GET',
+                headers: {
+                    'authorization': LOGIN_USER.token,
+                }
+            });
+            result = await result.json();
+            console.clear(); 
+            if (result.status === 200) {
+                alert(result.message);
+                getdata(1, 10);
+            } else {
+                alert(result.message);
+                console.error(result); 
+            }
+        }
+    }
+ 
+    async function updateData() {
+        alert('Updated');
+    }
+    
     return (
         <div>
             <h2 style={{ textAlign: "center" }}>Users Post</h2>
@@ -144,13 +213,24 @@ function Home() {
                 <tbody>
                     {
                         newdata.map((item, index) =>
-                            <tr key={index} id={index}>
+                            <tr key={index} id={index} data-attributes={index}>
                                 <td align='center'>{pagingcounter++}</td>
                                 <td align='center'>{item.user_field.name}</td>
                                 <td align='center'>{item.title}</td>
                                 <td align='center'>{item.type}</td>
-                                <td align='center'>{item.content}</td>
-                                <td align='center'>Action</td>
+                                <td align='center'>
+                                    <textarea defaultValue={item.content}>
+                                    
+                                    </textarea>
+                                </td>
+                                <td align='center'>
+                                    <button type='button' className='btn btn-warning btn-sm' onClick={()=>EditRow(item)}>
+                                    <i className="fa fa-pencil-square-o" aria-hidden="true"></i>
+                                    </button>
+                                    <button type='button' className='btn btn-danger btn-sm' style={{ marginLeft:'4px' }} onClick={()=>DeleteRow(item)}>
+                                    <i className="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                </td>
                             </tr>
                         )
                     }
@@ -165,7 +245,7 @@ function Home() {
             </Table>
 
 
-            <Modal show={show} onHide={handleClose}>
+         <Modal show={show} onHide={handleClose} id="addmodal">
         <Modal.Header closeButton>
           <Modal.Title>Add New Post</Modal.Title>
         </Modal.Header>
@@ -215,6 +295,64 @@ function Home() {
             Close
           </Button>
           <Button variant="primary" onClick={()=>saveData()}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+
+
+      <Modal show={showedit} onHide={handleEditClose} id="editmodal">
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Post</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <form>
+            <div className="form-group m-1">
+                <label htmlFor="user">User</label>
+                <select className="form-control" id="user" name='user'  onChange={(e)=>setUser(e.target.value)}>
+                    <option value={''}>Select User</option>
+                    {
+                        userslist.map((item, index) =>
+                            <option value={item._id} key={index}>{item.name}</option>
+                        )
+                    }
+                </select>
+            </div>
+            <div className="form-group m-1">
+                <label htmlFor="title">Title</label>
+                <input
+                type="text"
+                className="form-control"
+                id="title"
+                name='title'
+                placeholder="Title"
+                onChange={(e)=>setTitle(e.target.value)}
+                />
+            </div>
+            <div className="form-group m-1">
+                <label htmlFor="type">Type</label>
+                <select className="form-control" id="type" name='type'  onChange={(e)=>setType(e.target.value)}>
+                    <option value={''}>Select Type</option>
+                    <option value={'song'}>Song</option>
+                    <option value={'sport'}>Sport</option>
+                </select>
+            </div>
+            <div className="form-group m-1">
+                <label htmlFor="content">Content</label>
+                <textarea rows={5} className='form-control' id="content" name='content' onChange={(e)=>setContent(e.target.value)}>
+
+                </textarea>
+            </div>
+            </form>
+ 
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleEditClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={()=>updateData()}>
             Save Changes
           </Button>
         </Modal.Footer>
