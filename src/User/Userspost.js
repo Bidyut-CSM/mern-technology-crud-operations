@@ -22,10 +22,26 @@ function Home() {
     const [title, setTitle] = useState('');
     const [type, setType] = useState('');
     const [content, setContent] = useState('');
+
+    const [edituser, setEdituser] = useState('');
+    const [edittitle, setEdittitle] = useState('');
+    const [edittype, setEdittype] = useState('');
+    const [editcontent, setEditcontent] = useState('');
+    const [rowid, setRowid] = useState('');
+    
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
     const handleEditClose = () => setShowedit(false);
-    const handleEditShow = () => setShowedit(true);
+    let [editpostdata,setEditpostdata] = useState({
+        "_id": "",
+        "userid": "",
+        "title": "",
+        "type": "",
+        "content": "",
+        "created_at": "",
+        "updated_at": "",
+        "__v": ""
+    });
     useEffect(() => {
         document.title = "MERN Technology || Users - Post";
         if (LOGIN_USER === false) {
@@ -141,7 +157,13 @@ function Home() {
         console.clear(); 
         if (result.status === 200) {
             setShowedit(true);
-            console.log(result);
+            setEditpostdata(result.result);
+            setRowid(result.result._id);
+            setEdituser(result.result.userid);
+            setEdittitle(result.result.title);
+            setEdittype(result.result.type);
+            setEditcontent(result.result.content);
+            // console.log(editpostdata);
         } else {
             alert(result.message);
             console.error(result); 
@@ -169,6 +191,8 @@ function Home() {
     }
  
     async function updateData() {
+        console.clear();
+        console.log({'rowid':rowid,'user':edituser,'title':edittitle,'type':edittype,'content':editcontent});
         alert('Updated');
     }
     
@@ -311,11 +335,11 @@ function Home() {
             <form>
             <div className="form-group m-1">
                 <label htmlFor="user">User</label>
-                <select className="form-control" id="user" name='user'  onChange={(e)=>setUser(e.target.value)}>
+                <select className="form-control" id="user" name='user'  onChange={(e)=>setEdituser(e.target.value)}>
                     <option value={''}>Select User</option>
                     {
                         userslist.map((item, index) =>
-                            <option value={item._id} key={index}>{item.name}</option>
+                            <option value={item._id} key={index} selected={editpostdata.userid==item._id?true:false}>{item.name}</option>
                         )
                     }
                 </select>
@@ -328,20 +352,21 @@ function Home() {
                 id="title"
                 name='title'
                 placeholder="Title"
-                onChange={(e)=>setTitle(e.target.value)}
+                defaultValue={editpostdata.title}
+                onChange={(e)=>setEdittitle(e.target.value)}
                 />
             </div>
             <div className="form-group m-1">
                 <label htmlFor="type">Type</label>
-                <select className="form-control" id="type" name='type'  onChange={(e)=>setType(e.target.value)}>
+                <select className="form-control" id="type" name='type'  onChange={(e)=>setEdittype(e.target.value)}>
                     <option value={''}>Select Type</option>
-                    <option value={'song'}>Song</option>
-                    <option value={'sport'}>Sport</option>
+                    <option value={'song'}  selected={editpostdata.type=='song'?true:false}>Song</option>
+                    <option value={'sport'} selected={editpostdata.type=='sport'?true:false}>Sport</option>
                 </select>
             </div>
             <div className="form-group m-1">
                 <label htmlFor="content">Content</label>
-                <textarea rows={5} className='form-control' id="content" name='content' onChange={(e)=>setContent(e.target.value)}>
+                <textarea rows={5} className='form-control' id="content" name='content' defaultValue={editpostdata.content} onChange={(e)=>setEditcontent(e.target.value)}>
 
                 </textarea>
             </div>
