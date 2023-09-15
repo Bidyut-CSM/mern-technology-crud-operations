@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './../css/App.css';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams,useParams } from 'react-router-dom';
 import { API_URL, USER_DETAILS, USER_LOGOUT } from '../Constant';
 function Edituser() {
     const navigate = useNavigate();
     const LOGIN_USER = USER_DETAILS();
-    // const params = useParams();useParams//hook
-    // const { id } = params;
+    const params = useParams();//hook
+    const { rowid } = params;
     const [searchParams, setSearchParams] = useSearchParams();
     const [userid, setUserid] = useState("");
     const [phone, setPhone] = useState("");
@@ -17,6 +17,7 @@ function Edituser() {
     const [name, setName] = useState("");
     const [btndisable, setDtndisable] = useState(false);
     useEffect(() => {
+        // console.log(rowid); return;
         if (searchParams.get('id') == null || searchParams.get('id') === "") {
             navigate('./../home');
             return;
